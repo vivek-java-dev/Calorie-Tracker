@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files (temporary test files, not version control)
+test-*.js
+quick-test.js
+
+# OS
+.DS_Store
+Thumbs.db
+
+# External/Third-party repos
+external/
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+*.tmp
+.cache/
