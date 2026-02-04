@@ -2,6 +2,7 @@ import React from 'react'
 import { View, TextInput, StyleSheet, Pressable } from 'react-native'
 import { Formik } from 'formik'
 import { Send, Bookmark, Image } from 'lucide-react-native'
+import { API_ENDPOINTS } from '../config/api' // Adjust the import based on your project structure
 
 type InputBoxProps = {
   selectedDate: string
@@ -51,7 +52,7 @@ const InputBox: React.FC<InputBoxProps> = ({
     const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
     try {
-      const response = await fetch('http://10.0.2.2:5000/api/analyze-user-text', {
+      const response = await fetch(API_ENDPOINTS.ANALYZE_USER_TEXT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

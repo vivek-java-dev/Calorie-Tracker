@@ -15,6 +15,7 @@
     "lucide-react-native": "^0.563.0",
     "react": "19.2.0",
     "react-native": "0.83.1",
+    "react-native-config": "^1.6.1",
     "react-native-date-picker": "^5.0.13",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-svg": "^15.15.1"
@@ -31,6 +32,7 @@
     "@react-native/metro-config": "0.83.1",
     "@react-native/typescript-config": "0.83.1",
     "@types/jest": "^29.5.13",
+    "@types/node": "^25.2.0",
     "@types/react": "^19.2.0",
     "@types/react-test-renderer": "^19.1.0",
     "eslint": "^8.19.0",

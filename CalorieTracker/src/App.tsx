@@ -11,6 +11,7 @@ import SummaryCard from './components/SummaryCard';
 import { useEffect, useState } from 'react';
 import DateStrip from './components/DateStrip';
 import TopNav from './components/TopNav';
+import { API_ENDPOINTS } from './config/api';
 
 
 function App() {
@@ -57,7 +58,7 @@ function App() {
   }
   
   const fetchDayData = async (date: string) => {
-    const apiUrl = `http://10.0.2.2:5000/api/entries?date=${date}`
+    const apiUrl = `${API_ENDPOINTS.ENTRIES}?date=${date}`
     
     console.log('🔍 App - Fetching day data:')
     console.log('📅 Date:', date)
