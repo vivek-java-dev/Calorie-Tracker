@@ -1,11 +1,12 @@
 // import 'react-native-gesture-handler'
-import { ScrollView, StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, useColorScheme } from 'react-native';
 import {
   SafeAreaProvider,
 } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import InputBox from './components/InputBox';
 import EntryCard from './components/entryCard';
+import { SkeletonEntryCard, ErrorEntryCard } from './components/skeletons';
 import SummaryCard from './components/SummaryCard';
 import { useEffect, useState } from 'react';
 import DateStrip from './components/DateStrip';
@@ -18,13 +19,41 @@ function App() {
   const today = new Date()
   const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const [selectedDate, setSelectedDate] = useState(todayISO)
-  const [drawerOpen,setDrawerOpen] = useState(false)
   const [dayData, setDayData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [analyzingEntry, setAnalyzingEntry] = useState<string | null>(null)
+  const [entryError, setEntryError] = useState<{ userText: string; message: string; retryFn?: () => void } | null>(null)
   
 
   const shareDay = (selectedDate: string) => {
     // share logic here
+  }
+
+  const handleEntrySubmit = (userText: string) => {
+    setEntryError(null) // Clear any previous errors
+    setAnalyzingEntry(userText)
+  }
+
+  const handleEntryAdded = (date: string) => {
+    setAnalyzingEntry(null)
+    setEntryError(null)
+    fetchDayData(date)
+  }
+
+  const handleEntryError = (userText: string, errorMessage: string, retryFn?: () => void) => {
+    setAnalyzingEntry(null)
+    setEntryError({ userText, message: errorMessage, retryFn })
+  }
+
+  const handleRetryEntry = () => {
+    if (entryError?.retryFn) {
+      setEntryError(null)
+      entryError.retryFn()
+    }
+  }
+
+  const handleDismissError = () => {
+    setEntryError(null)
   }
   
   const fetchDayData = async (date: string) => {
@@ -72,7 +101,7 @@ function App() {
       <TopNav
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
-        onOpenDrawer={() => setDrawerOpen(true)}
+        onOpenDrawer={() => {}}
         onShare={() => shareDay(selectedDate)}
       />
 
@@ -86,13 +115,32 @@ function App() {
         />
 
       <ScrollView style={{ padding: 16 }}>
+      {/* Show skeleton card while analyzing */}
+      {analyzingEntry && (
+        <SkeletonEntryCard userText={analyzingEntry} />
+      )}
+      
+      {/* Show error card if there's an error */}
+      {entryError && (
+        <ErrorEntryCard 
+          userText={entryError.userText}
+          errorMessage={entryError.message}
+          onRetry={handleRetryEntry}
+          onDismiss={handleDismissError}
+        />
+      )}
+      
+      {/* Show actual entries */}
       {dayData?.entries?.map((entry: any) => (
         <EntryCard key={entry._id} entry={entry} />
       )) || []}
     </ScrollView>
       <InputBox 
         selectedDate={selectedDate}
-        onEntryAdded={fetchDayData}/>
+        onEntrySubmit={handleEntrySubmit}
+        onEntryAdded={handleEntryAdded}
+        onEntryError={handleEntryError}
+      />
         </SafeAreaView>
     </SafeAreaProvider>
   );

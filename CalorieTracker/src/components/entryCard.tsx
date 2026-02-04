@@ -49,9 +49,12 @@ export default function EntryCard({ entry }: { entry: Entry }) {
           {entry.items!.map((item, index) => (
             <View key={index} style={styles.itemRow}>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMacros}>
-                {item.calories} kcal    P {item.proteins}g    C {item.carbs}g    F {item.fats}g
-              </Text>
+              <View style={styles.itemMacros}>
+                <Text style={styles.itemMacroText}>{item.calories} kcal</Text>
+                <Text style={styles.itemMacroText}>P {item.proteins}g</Text>
+                <Text style={styles.itemMacroText}>C {item.carbs}g</Text>
+                <Text style={styles.itemMacroText}>F {item.fats}g</Text>
+              </View>
             </View>
           ))}
         </View>
@@ -156,11 +159,27 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 14,
     fontWeight: "400",
+    marginBottom: 4,
   },
 
   itemMacros: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+
+  itemMacroText: {
     fontSize: 12,
     color: "#666",
+    fontWeight: "500",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 24,
+    backgroundColor: "#F9FAFB",
+
   },
 
   macrosRow: {

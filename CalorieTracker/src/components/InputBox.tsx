@@ -5,7 +5,9 @@ import { Send, Bookmark, Image } from 'lucide-react-native'
 
 type InputBoxProps = {
   selectedDate: string
+  onEntrySubmit: (userText: string) => void
   onEntryAdded: (date: string) => void
+  onEntryError: (userText: string, error: string, retryFn: () => void) => void
 }
 
 type FormValues = {
@@ -14,7 +16,9 @@ type FormValues = {
 
 const InputBox: React.FC<InputBoxProps> = ({
   selectedDate,
+  onEntrySubmit,
   onEntryAdded,
+  onEntryError,
 }) => {
   const handleSave = () => {
     console.log('Save functionality - to be implemented')
@@ -29,6 +33,9 @@ const InputBox: React.FC<InputBoxProps> = ({
   const handleSubmit = async (values: FormValues, resetForm: () => void) => {
     if (!values.text.trim()) return
 
+    // Immediately show skeleton card
+    onEntrySubmit(values.text)
+
     const requestData = {
       user_text: values.text,
       date: selectedDate,
@@ -39,6 +46,10 @@ const InputBox: React.FC<InputBoxProps> = ({
     console.log('📝 User Text:', values.text)
     console.log('📦 Request Body:', JSON.stringify(requestData, null, 2))
 
+    // Create AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
     try {
       const response = await fetch('http://10.0.2.2:5000/api/analyze-user-text', {
         method: 'POST',
@@ -46,7 +57,10 @@ const InputBox: React.FC<InputBoxProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       console.log('📡 Response Status:', response.status, response.statusText)
       console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()))
@@ -61,9 +75,30 @@ const InputBox: React.FC<InputBoxProps> = ({
         console.error('❌ Failed to analyze text:')
         console.error('Status:', response.status, response.statusText)
         console.error('Error Response:', errorText)
+        
+        let errorMessage = 'Failed to analyze text'
+        if (response.status >= 500) {
+          errorMessage = 'Server error. Please try again later.'
+        } else if (response.status === 404) {
+          errorMessage = 'Service not found. Please check your connection.'
+        } else if (response.status >= 400) {
+          errorMessage = 'Invalid request. Please try again.'
+        }
+        
+        onEntryError(values.text, errorMessage, () => handleSubmit(values, resetForm))
       }
-    } catch (error) {
+    } catch (error: any) {
+      clearTimeout(timeoutId)
       console.error('💥 Network error submitting text:', error)
+      
+      let errorMessage = 'Network error. Please check your connection.'
+      if (error.name === 'AbortError') {
+        errorMessage = 'Request timed out. Please try again.'
+      } else if (error.message.includes('Network request failed')) {
+        errorMessage = 'Cannot connect to server. Please check if the server is running.'
+      }
+      
+      onEntryError(values.text, errorMessage, () => handleSubmit(values, resetForm))
     }
   }
 

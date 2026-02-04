@@ -42,7 +42,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ calories, macros }) => {
 
           <View style={styles.column}>
             <Text style={[styles.value, styles.bold]}>{calories.netCalories}</Text>
-            <Text style={styles.label}>Net Calories</Text>
+            <Text style={styles.label}>Total</Text>
           </View>
         </View>
       </View>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
     marginTop: 2,
-    textAlign:'center'
+    // textAlign:'left'
   },
 })
 
