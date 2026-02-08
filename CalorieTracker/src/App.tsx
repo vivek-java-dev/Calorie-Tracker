@@ -12,10 +12,18 @@ import { useEffect, useState } from 'react';
 import DateStrip from './components/DateStrip';
 import TopNav from './components/TopNav';
 import { API_ENDPOINTS } from './config/api';
+import './config/googleAuth';
+import LoginScreen from './screens/LoginScreen';
+import { getToken } from './services/authService';
+import { logout } from './services/authService';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
 
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   const today = new Date()
   const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
@@ -24,8 +32,28 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [analyzingEntry, setAnalyzingEntry] = useState<string | null>(null)
   const [entryError, setEntryError] = useState<{ userText: string; message: string; retryFn?: () => void } | null>(null)
-  
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await getToken();
+      setIsAuthenticated(!!token);
+      setCheckingAuth(false);
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await GoogleSignin.signOut();
+    } catch (e) {
+      console.warn('Google signOut failed (safe):', e);
+    }
+
+    await logout();
+    setIsAuthenticated(false);
+  };
+
+  
   const shareDay = (selectedDate: string) => {
     // share logic here
   }
@@ -67,14 +95,10 @@ function App() {
     try {
       setLoading(true)
       const response = await fetch(apiUrl)
-      
-      console.log('📡 Response Status:', response.status, response.statusText)
-      console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()))
-      
+      console.log('📊 Response :', response)
+            
       if (response.ok) {
         const responseData = await response.json()
-        console.log('✅ Day data received:', JSON.stringify(responseData, null, 2))
-        // Extract the actual data from the response wrapper
         setDayData(responseData.data)
       } else {
         const errorText = await response.text()
@@ -91,9 +115,15 @@ function App() {
   
   useEffect(() => {fetchDayData(selectedDate)}, [selectedDate])
   
-  
-  console.log('selectedDate:', selectedDate)
+  if (checkingAuth) {
+    return null; // Or a loading spinner
+  }
 
+  if (!isAuthenticated) {
+    return <LoginScreen onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+ 
 
   return (
     <SafeAreaProvider>
@@ -104,6 +134,8 @@ function App() {
         onDateChange={setSelectedDate}
         onOpenDrawer={() => {}}
         onShare={() => shareDay(selectedDate)}
+        onLogout={handleLogout}   
+
       />
 
       <DateStrip
@@ -133,7 +165,7 @@ function App() {
       
       {/* Show actual entries */}
       {dayData?.entries?.map((entry: any) => (
-        <EntryCard key={entry._id} entry={entry} />
+        <EntryCard key={entry._id} entry={entry} onDeleteSuccess={() => fetchDayData(selectedDate)}/>
       )) || []}
     </ScrollView>
       <InputBox 
@@ -152,6 +184,8 @@ function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff', 
+
   },
 });
 

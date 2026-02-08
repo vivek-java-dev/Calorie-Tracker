@@ -78,18 +78,19 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ calories, macros }) => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
   },
   card: {
     flex: 1,
     backgroundColor: '#EEF5FF',
     borderRadius: 14,
-    padding: 14,
+    padding: 12,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
     marginBottom: 12,
   },
   headerText: {
@@ -105,17 +106,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   value: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '400',
   },
   bold: {
     fontWeight: '500',
   },
   label: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#555',
     marginTop: 2,
-    // textAlign:'left'
+    textAlign:'center'
   },
 })
 

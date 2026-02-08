@@ -1,11 +1,15 @@
-import Config from 'react-native-config';
+import { REACT_APP_API_BASE_URL } from '@env';
 
-const API_BASE_URL = Config.REACT_APP_API_BASE_URL || 'http://10.0.2.2:5000/api';
+const API_BASE_URL = REACT_APP_API_BASE_URL ;
+
 
 export const API_ENDPOINTS = {
-  ENTRIES: `${API_BASE_URL}/entries`,
-  ANALYZE_USER_TEXT: `${API_BASE_URL}/analyze-user-text`,
-  ANALYZE_MEAL_IMAGE: `${API_BASE_URL}/analyze-meal-image`,
+  ENTRIES: `${API_BASE_URL}/api/entries`,
+  DELETE_ENTRY: `${API_BASE_URL}/api/entries`,
+  ANALYZE_USER_TEXT: `${API_BASE_URL}/api/analyze-user-text`,
+  ANALYZE_MEAL_IMAGE: `${API_BASE_URL}/api/analyze-meal-image`,
+  GOOGLE_AUTH: `${API_BASE_URL}/auth/google`,
 };
+
 
 export default API_BASE_URL;

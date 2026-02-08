@@ -1,4 +1,7 @@
-const API_URL = 'https://YOUR_BACKEND_URL'; // e.g. http://192.168.1.5:3000
+import { API_ENDPOINTS } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const TOKEN_KEY = '@auth_token';
 
 type GoogleAuthResponse = {
   token: string;
@@ -11,18 +14,41 @@ type GoogleAuthResponse = {
 };
 
 export async function loginWithGoogle(idToken: string): Promise<GoogleAuthResponse> {
-  const res = await fetch(`${API_URL}/auth/google`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ idToken }),
-  });
+  console.log('calling api endpoint:', API_ENDPOINTS.GOOGLE_AUTH);
+  
+  try {
+    const res = await fetch(`${API_ENDPOINTS.GOOGLE_AUTH}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Google login failed');
+    console.log('Response status:', res.status);
+    
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Error response:', text);
+      throw new Error(text || `Google login failed (${res.status})`);
+    }
+
+    const data = await res.json();
+    
+    // Store the token
+    await AsyncStorage.setItem(TOKEN_KEY, data.token);
+    
+    return data;
+  } catch (error) {
+    console.error('Full error object:', error);
+    throw error;
   }
+}
 
-  return res.json();
+export async function getToken(): Promise<string | null> {
+  return await AsyncStorage.getItem(TOKEN_KEY);
+}
+
+export async function logout(): Promise<void> {
+  await AsyncStorage.removeItem(TOKEN_KEY);
 }

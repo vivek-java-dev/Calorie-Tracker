@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, Pressable, StyleSheet, TouchableOpacity } from 'react-native'
 import DatePicker from 'react-native-date-picker'
 import { Menu, ChevronDown, Share } from 'lucide-react-native'
 
@@ -9,6 +9,8 @@ type TopNavProps = {
   onOpenDrawer: () => void
   onDateChange: (date: string) => void
   onShare: () => void
+  onLogout: () => void; 
+
 }
 
 function toISO(date: Date) {
@@ -33,6 +35,7 @@ const TopNav: React.FC<TopNavProps> = ({
   onOpenDrawer,
   onDateChange,
   onShare,
+  onLogout,
 }) => {
   const [open, setOpen] = useState(false)
 
@@ -56,9 +59,15 @@ const TopNav: React.FC<TopNavProps> = ({
 
 
       {/* Right */}
-      <Pressable onPress={onShare} style={styles.iconBtn}>
+      {/* <Pressable onPress={onShare} style={styles.iconBtn}>
         <Share size={20} color="#000" />
-      </Pressable>
+      </Pressable> */}
+
+      <TouchableOpacity onPress={onLogout}>
+        <Text style={{ color: 'red', fontWeight: '600' }}>
+          Logout
+        </Text>
+      </TouchableOpacity>
 
       <DatePicker
         modal

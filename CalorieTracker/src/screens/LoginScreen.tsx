@@ -1,36 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, ActivityIndicator, Alert } from 'react-native';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { configureGoogleSignIn } from '../config/googleAuth';
+import { GoogleSignin,isSuccessResponse } from '@react-native-google-signin/google-signin';
 import { loginWithGoogle } from '../services/authService';
 
-const LoginScreen: React.FC = () => {
+interface LoginScreenProps {
+  onLoginSuccess: () => void;
+}
+
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    configureGoogleSignIn();
-  }, []);
+
 
   const onGooglePress = async () => {
     try {
       setLoading(true);
 
+      
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
+      await GoogleSignin.signOut(); // 🔥 forces chooser
       const userInfo = await GoogleSignin.signIn();
+      console.log('Google Sign-In response:', JSON.stringify(userInfo, null, 2));
 
       const idToken = userInfo.data?.idToken;
 
       if (!idToken) {
-        throw new Error('No idToken returned from Google');
+        console.error('Full userInfo object:', JSON.stringify(userInfo, null, 2));
+        throw new Error('No idToken returned from Google. Please check your Google Cloud Console configuration.');
       }
+
+      console.log('idToken found:', idToken);
 
       const result = await loginWithGoogle(idToken);
 
-      Alert.alert('Success', `Welcome ${result.user.name}`);
       console.log('JWT:', result.token);
+      onLoginSuccess();
     } catch (err: any) {
-      console.error(err);
+      console.error('Login error:', err);
       Alert.alert('Login failed', err.message || 'Something went wrong');
     } finally {
       setLoading(false);

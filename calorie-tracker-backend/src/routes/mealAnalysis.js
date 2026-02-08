@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const mongoose = require("mongoose");
 const { analyzeUserText, analyzeMealImage } = require('../services/geminiService');
 const Entry = require('../models/Entry');
 
@@ -186,67 +187,65 @@ router.post('/analyze-user-text', async (req, res) => {
   }
 });
 
-router.delete('/enteries',async(req,res)=>{
-  const {date, id}=req.query;
+router.delete('/entries', async (req, res) => {
+  const { id, date } = req.query || req.body;
+
   try {
-    if(date && id){
-     console.log("date :",date);
-    // Validate format dd-mm-yy using regex
-     const dateRegex = /^\d{2}-\d{2}-\d{2}$/;
-     if(!dateRegex.test(date)){
-        console.error("invalid date format.");
-       return res.status(400).json({error: "invalid date format."})
-      }
-     if (!mongoose.Types.ObjectId.isValid(id)) {
+    // ❌ No params
+    if (!id && !date) {
+      return res.status(400).json({
+        error: "Either id or date is required",
+      });
+    }
+
+    if (id) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: "Invalid ObjectId" });
       }
-      
-      const [year,month,day] = date.split('-');
-      if(day<1||day>31) return res.status(400).json({error: "invalid date format.It must be in YY-MM-DD format"});
-      if(month<1||month>12) return res.status(400).json({error: "invalid date format.It must be in YY-MM-DD format"});
-      
-      const fullYear = `20${year}`;
 
-      const newDate=`${fullYear}-${month}-${day}`;
-      console.log(`new format date is : ${newDate}`);
-  
-     
-      // Delete entry of that day
-      const result = await Entry.findOneAndDelete({
-        _id: id,
-        date:newDate,
-      })
-    //  const idResult = await Entry.findByIdAndDelete(id);
-     if(!result){
-      return res.status(400).json({message: "Entry not found"});
-     }
-    //  console.log(dateResult);
-     
+      const deletedEntry = await Entry.findByIdAndDelete(id);
+
+      if (!deletedEntry) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+
       return res.status(200).json({
         success: true,
-        message: `deleted entry : ${result}`,
-        
+        message: "Entry deleted successfully",
+        data: deletedEntry,
       });
-    // if(!id){
-    //   console.log(result);
-    //    return res.status(200).json({
-    //     success: true,
-    //     message: `Deleted entries for ${date}`,
-    //     deletedCount: result.deletedCount
-    //   });
-    // }
     }
-   else{
-    console.log("query parameter is missing");
-    return res.status(500).json({error: "query parameter is missing"});
-   }
-    
-  } catch (error) {
-    console.error("Error in route /entries :",error);
-    res.status(500).json({ error: error.message });
 
+    if (date) {
+      const [year, month, day] = date.split("-");
+
+      if (
+        !year || !month || !day ||
+        day < 1 || day > 31 ||
+        month < 1 || month > 12
+      ) {
+        return res.status(400).json({
+          error: "Invalid date format. Use YY-MM-DD",
+        });
+      }
+
+      const fullYear = `20${year}`;
+      const formattedDate = `${fullYear}-${month}-${day}`;
+
+      const result = await Entry.deleteMany({ date: formattedDate });
+
+      return res.status(200).json({
+        success: true,
+        message: `Deleted entries for ${date}`,
+        deletedCount: result.deletedCount,
+      });
+    }
+
+  } catch (error) {
+    console.error("Error in DELETE /entries:", error);
+    return res.status(500).json({ error: error.message });
   }
-})
+});
 
 
 

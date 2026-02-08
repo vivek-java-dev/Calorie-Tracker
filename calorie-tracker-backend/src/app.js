@@ -11,6 +11,8 @@ const cors = require('cors');
 // Import routes
 const mealAnalysisRoutes = require('./routes/mealAnalysis');
 const indexRoutes = require('./routes/index');
+const authRoutes = require('./routes/auth.routes.js');
+
 
 // Import error handlers
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -37,6 +39,7 @@ app.get('/', (req, res) => {
       'POST /api/analyze-user-text': 'Analyze meal from text description',
       'POST /api/analyze-meal-image': 'Analyze meal from uploaded image',
       'GET /api/entries': 'Get all saved meal entries',
+
     },
   });
 });
@@ -44,6 +47,8 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api', indexRoutes);
 app.use('/api', mealAnalysisRoutes);
+app.use('/auth', authRoutes);
+
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);

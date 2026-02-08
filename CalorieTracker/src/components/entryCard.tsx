@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Trash2, Edit3 } from "lucide-react-native";
+import { API_ENDPOINTS } from '../config/api' 
 
 type Item = {
   name: string;
@@ -25,9 +26,41 @@ type Entry = {
   createdAt: string;
 };
 
-export default function EntryCard({ entry }: { entry: Entry }) {
+type EntryCardProps = {
+  entry: Entry;
+  onDeleteSuccess?: () => void;
+};
+
+
+export default function EntryCard({
+  entry,
+  onDeleteSuccess,
+}: EntryCardProps) {
+  
   const isMeal = entry.type === "meal";
   const hasItems = entry.items && entry.items.length > 0;
+
+  const handleDelete = async (_id : string ) => {
+    const id = _id;
+    console.log('Attempting to delete entry with ID:', id);
+     try {
+          const response = await fetch(`${API_ENDPOINTS.DELETE_ENTRY}?id=${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          if (response.ok) {
+            console.log('Entry deleted successfully');
+             onDeleteSuccess?.();
+          } else {
+            console.error('Failed to delete entry. Status:', response.status);
+          }
+      }
+      catch (error) {        
+        console.error('Error deleting entry:', error);
+      }
+  }
 
   const time = new Date(entry.createdAt).toLocaleTimeString([], {
     hour: "2-digit",
@@ -85,11 +118,11 @@ export default function EntryCard({ entry }: { entry: Entry }) {
         <Text style={styles.time}>{time}</Text>
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
+          {/* <TouchableOpacity style={styles.actionButton}>
             <Edit3 size={16} color="#666" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(entry._id)}>
             <Trash2 size={16} color="red" />
           </TouchableOpacity>
         </View>
