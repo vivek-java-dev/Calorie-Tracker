@@ -35,8 +35,8 @@ export async function loginWithGoogle(idToken: string): Promise<GoogleAuthRespon
 
     const data = await res.json();
     
-    // Store the token
-    await AsyncStorage.setItem(TOKEN_KEY, data.token);
+    await saveToken(data.token);
+
     
     return data;
   } catch (error) {
@@ -44,6 +44,11 @@ export async function loginWithGoogle(idToken: string): Promise<GoogleAuthRespon
     throw error;
   }
 }
+
+export async function saveToken(token: string) {
+  await AsyncStorage.setItem(TOKEN_KEY, token);
+}
+
 
 export async function getToken(): Promise<string | null> {
   return await AsyncStorage.getItem(TOKEN_KEY);

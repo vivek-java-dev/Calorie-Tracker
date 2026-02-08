@@ -2,7 +2,9 @@ import React from 'react'
 import { View, TextInput, StyleSheet, Pressable } from 'react-native'
 import { Formik } from 'formik'
 import { Send, Bookmark, Image } from 'lucide-react-native'
-import { API_ENDPOINTS } from '../config/api' // Adjust the import based on your project structure
+import { API_ENDPOINTS } from '../config/api'
+import { apiRequest } from '../services/apiClient';
+
 
 type InputBoxProps = {
   selectedDate: string
@@ -34,7 +36,6 @@ const InputBox: React.FC<InputBoxProps> = ({
   const handleSubmit = async (values: FormValues, resetForm: () => void) => {
     if (!values.text.trim()) return
 
-    // Immediately show skeleton card
     onEntrySubmit(values.text)
 
     const requestData = {
@@ -42,56 +43,13 @@ const InputBox: React.FC<InputBoxProps> = ({
       date: selectedDate,
     }
 
-    console.log('🚀 InputBox - Submitting text analysis request:')
-    console.log('📅 Selected Date:', selectedDate)
-    console.log('📝 User Text:', values.text)
-    console.log('📦 Request Body:', JSON.stringify(requestData, null, 2))
-
-    // Create AbortController for timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
     try {
-      const response = await fetch(API_ENDPOINTS.ANALYZE_USER_TEXT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-        signal: controller.signal,
-      })
+      await apiRequest(API_ENDPOINTS.ANALYZE_USER_TEXT,'POST', requestData)
+      resetForm();
+      onEntryAdded(selectedDate);
 
-      clearTimeout(timeoutId)
-
-      console.log('📡 Response Status:', response.status, response.statusText)
-      console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()))
-
-      if (response.ok) {
-        const result = await response.json()
-        console.log('✅ Analysis result:', JSON.stringify(result, null, 2))
-        resetForm()
-        onEntryAdded(selectedDate)
-      } else {
-        const errorText = await response.text()
-        console.error('❌ Failed to analyze text:')
-        console.error('Status:', response.status, response.statusText)
-        console.error('Error Response:', errorText)
-        
-        let errorMessage = 'Failed to analyze text'
-        if (response.status >= 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else if (response.status === 404) {
-          errorMessage = 'Service not found. Please check your connection.'
-        } else if (response.status >= 400) {
-          errorMessage = 'Invalid request. Please try again.'
-        }
-        
-        onEntryError(values.text, errorMessage, () => handleSubmit(values, resetForm))
-      }
-    } catch (error: any) {
-      clearTimeout(timeoutId)
-      console.error('💥 Network error submitting text:', error)
-      
+    } catch (error: any) {      
       let errorMessage = 'Network error. Please check your connection.'
       if (error.name === 'AbortError') {
         errorMessage = 'Request timed out. Please try again.'
@@ -110,22 +68,31 @@ const InputBox: React.FC<InputBoxProps> = ({
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleChange, handleSubmit }) => (
+      {({ values, handleChange, handleSubmit , isSubmitting}) => (
         <View style={styles.container}>
           <View style={styles.inputRow}>
             <View style={styles.inputContainer}>
               <TextInput
-                style={styles.textInput}
+                style={[
+                styles.textInput,
+                isSubmitting && styles.disabledInput,
+                ]}
                 placeholder="What did you eat or exercise?"
                 value={values.text}
                 onChangeText={handleChange('text')}
                 placeholderTextColor="#8294a7ff"
+                editable={!isSubmitting}
+
               />
               <Pressable 
-                style={styles.sendButton}
+                style={[
+                  styles.sendButton,
+                  isSubmitting && styles.disabledButton,
+                ]}
+                disabled={isSubmitting}
                 onPress={() => handleSubmit()}
               >
-                <Send size={18} color="#4A90E2" />
+                <Send size={18} color={isSubmitting ? '#AAA' : '#4A90E2'} />
               </Pressable>
             </View>
 
@@ -133,6 +100,7 @@ const InputBox: React.FC<InputBoxProps> = ({
               <Pressable 
                 style={styles.secondaryButton}
                 onPress={handleSave}
+                disabled={isSubmitting}
               >
                 <Bookmark size={18} color="#444" />
               </Pressable>
@@ -153,20 +121,11 @@ const InputBox: React.FC<InputBoxProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    // backgroundColor: '#EEF5FF',
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginHorizontal: 16,
     marginBottom: 2,
     borderRadius: 14,
-    // shadowColor: '#4A90E2',
-    // shadowOffset: {
-    //   width: 0,
-    //   height: 2,
-    // },
-    // shadowOpacity: 0.08,
-    // shadowRadius: 4,
-    // elevation: 3,
   },
   inputRow: {
     flexDirection: 'row',
@@ -207,6 +166,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  disabledInput: {
+  opacity: 0.6,
+  },
+
+  disabledButton: {
+    opacity: 0.5,
+  },
+
 })
 
 export default InputBox

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Trash2, Edit3 } from "lucide-react-native";
 import { API_ENDPOINTS } from '../config/api' 
+import { apiRequest } from '../services/apiClient';
 
 type Item = {
   name: string;
@@ -44,18 +45,8 @@ export default function EntryCard({
     const id = _id;
     console.log('Attempting to delete entry with ID:', id);
      try {
-          const response = await fetch(`${API_ENDPOINTS.DELETE_ENTRY}?id=${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          })
-          if (response.ok) {
-            console.log('Entry deleted successfully');
-             onDeleteSuccess?.();
-          } else {
-            console.error('Failed to delete entry. Status:', response.status);
-          }
+          const response = await apiRequest( `${API_ENDPOINTS.DELETE_ENTRY}?id=${id}`,'DELETE');
+          onDeleteSuccess?.();
       }
       catch (error) {        
         console.error('Error deleting entry:', error);
