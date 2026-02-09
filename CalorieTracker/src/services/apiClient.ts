@@ -33,7 +33,7 @@ export async function apiRequest(
       throw new Error(errorText || 'API request failed');
     }
 
-    return await res.json();
+    return res;
   } catch (err: any) {
     if (err.name === 'AbortError') {
       throw new Error('Request timed out');

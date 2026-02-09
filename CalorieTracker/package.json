@@ -10,7 +10,7 @@
     "test": "jest",
     "android:dev": "ENVFILE=.env.development npx react-native run-android",
     "android:prod": "ENVFILE=.env.production npx react-native run-android",
-    "build:apk:prod": "cd android && ENVFILE=.env.production ./gradlew assembleRelease"
+    "build:apk:prod": "cd android && cross-env ENVFILE=.env.production gradlew assembleRelease"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
@@ -40,6 +40,7 @@
     "@types/node": "^25.2.0",
     "@types/react": "^19.2.0",
     "@types/react-test-renderer": "^19.1.0",
+    "cross-env": "^10.1.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "prettier": "2.8.8",

@@ -46,6 +46,7 @@ export default function EntryCard({
     console.log('Attempting to delete entry with ID:', id);
      try {
           const response = await apiRequest( `${API_ENDPOINTS.DELETE_ENTRY}?id=${id}`,'DELETE');
+          
           onDeleteSuccess?.();
       }
       catch (error) {        
