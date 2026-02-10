@@ -4,6 +4,7 @@ const { verifyGoogleToken } = require('../services/googleAuth.service.js');
 
 async function googleLogin(req, res) {
   try {
+    console.log('Received Google login request');
     const { idToken } = req.body;
 
     if (!idToken) {
