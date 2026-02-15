@@ -3,10 +3,11 @@ const multer = require('multer');
 const mongoose = require("mongoose");
 const { analyzeUserText, analyzeMealImage } = require('../services/geminiService');
 const Entry = require('../models/Entry');
+const  authMiddleware  = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.get('/entries', async (req, res) => {
+router.get('/entries',authMiddleware, async (req, res) => {
   try {
     const date = req.query.date || req.body.date;
 
@@ -21,6 +22,7 @@ router.get('/entries', async (req, res) => {
     console.log(' Fetching entries for date:', date);
     
     const entries = await Entry.find({
+      userId:req.user.userId,
       date: date
     })
       .sort({ createdAt: -1 })
@@ -81,7 +83,7 @@ router.get('/entries', async (req, res) => {
 });
 
 
-router.post('/analyze-user-text', async (req, res) => {
+router.post('/analyze-user-text',authMiddleware, async (req, res) => {
   try {
     const userText = req.body.user_text || req.body['user-text'];
     const date = req.body.date || req.query.date || new Date().toISOString().split('T')[0];
@@ -106,6 +108,7 @@ router.post('/analyze-user-text', async (req, res) => {
 
     // Prepare data for database save (using new schema fields)
     const entryData = {
+      userId:req.user.userId,
       userText: nutritionData.userText,
       name: nutritionData.name,
       type: nutritionData.type,
@@ -131,6 +134,7 @@ router.post('/analyze-user-text', async (req, res) => {
       data: {
         analysis: nutritionData,
         saved_entry: {
+          userId: savedEntry.userId,
           id: savedEntry._id,
           userText: savedEntry.userText,
           name: savedEntry.name,
@@ -187,7 +191,7 @@ router.post('/analyze-user-text', async (req, res) => {
   }
 });
 
-router.delete('/entries', async (req, res) => {
+router.delete('/entries',authMiddleware ,async (req, res) => {
   const { id, date } = req.query || req.body;
 
   try {
@@ -203,7 +207,7 @@ router.delete('/entries', async (req, res) => {
         return res.status(400).json({ message: "Invalid ObjectId" });
       }
 
-      const deletedEntry = await Entry.findByIdAndDelete(id);
+      const deletedEntry = await Entry.findByIdAndDelete({_id:id, userId:req.user.userId });
 
       if (!deletedEntry) {
         return res.status(404).json({ message: "Entry not found" });
@@ -232,7 +236,7 @@ router.delete('/entries', async (req, res) => {
       const fullYear = `20${year}`;
       const formattedDate = `${fullYear}-${month}-${day}`;
 
-      const result = await Entry.deleteMany({ date: formattedDate });
+      const result = await Entry.deleteMany({ date: formattedDate, userId:req.user.userId });
 
       return res.status(200).json({
         success: true,
@@ -263,7 +267,7 @@ const upload = multer({
     }
   },
 });
-router.post('/analyze-meal-image', upload.single('meal_image'), async (req, res) => {
+router.post('/analyze-meal-image', authMiddleware,upload.single('meal_image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({

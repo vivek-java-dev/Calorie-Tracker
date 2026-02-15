@@ -99,21 +99,24 @@ const styles = StyleSheet.create({
   },
   box: {
     width: 44,
-    height: 52,
+    height: 48,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F4F6',
+    // backgroundColor: '#F3F4F6',
   },
   selectedBox: {
+    borderColor: '#34D399',
     backgroundColor: '#DCFCE7',
   },
   day: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B7280',
   },
   date: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: '#111827',
   },

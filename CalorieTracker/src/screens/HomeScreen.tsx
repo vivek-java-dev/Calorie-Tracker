@@ -8,6 +8,7 @@ import SummaryCard from '../components/SummaryCard';
 import DateStrip from '../components/DateStrip';
 import TopNav from '../components/TopNav';
 import { API_ENDPOINTS } from '../config/api';
+import { apiRequest } from '../services/apiClient';
 
 type Props = {
   onLogout: () => void;
@@ -33,17 +34,11 @@ const HomeScreen: React.FC<Props> = ({ onLogout }) => {
 
   const fetchDayData = async (date: string) => {
     const apiUrl = `${API_ENDPOINTS.ENTRIES}?date=${date}`;
-
     try {
-      setLoading(true);
-      const response = await fetch(apiUrl);
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setDayData(responseData.data);
-      } else {
-        console.error('Failed to fetch day data');
-      }
+      setLoading(true)
+      const response = await apiRequest(apiUrl, 'GET');
+      const responseData = await response.json();
+      setDayData(responseData.data);
     } catch (error) {
       console.error('Network error:', error);
     } finally {

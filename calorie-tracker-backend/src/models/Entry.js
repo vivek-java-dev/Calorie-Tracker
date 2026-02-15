@@ -9,18 +9,12 @@ const itemSchema = new mongoose.Schema({
 }, { _id: false });
 
 const entrySchema = new mongoose.Schema({
-  // history: [
-  //   {
-  //     snapshot: mongoose.Schema.Types.Mixed,
-  //     updatedAt: Date,
-  //   },
-  // ],
 
-  // userId: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "User",
-  //   required: true,
-  // },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 
   userText : {
     type: String,

@@ -29,7 +29,6 @@ export async function apiRequest(
 
     if (!res.ok) {
       const errorText = await res.text();
-      console.log( ' this is inside api client '  )
       throw new Error(errorText || 'API request failed');
     }
 

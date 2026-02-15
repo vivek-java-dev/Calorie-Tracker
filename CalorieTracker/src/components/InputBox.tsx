@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingTop: 8,
     marginHorizontal: 16,
-    marginBottom: 2,
+    marginBottom: 6,
     borderRadius: 14,
   },
   inputRow: {
