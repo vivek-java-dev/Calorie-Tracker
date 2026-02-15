@@ -1,10 +1,9 @@
-import React from 'react'
-import { View, TextInput, StyleSheet, Pressable } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, TextInput, StyleSheet, Pressable, Keyboard, LayoutAnimation, Platform } from 'react-native'
 import { Formik } from 'formik'
 import { Send, Bookmark, Image } from 'lucide-react-native'
 import { API_ENDPOINTS } from '../config/api'
-import { apiRequest } from '../services/apiClient';
-
+import { apiRequest } from '../services/apiClient'
 
 type InputBoxProps = {
   selectedDate: string
@@ -23,6 +22,27 @@ const InputBox: React.FC<InputBoxProps> = ({
   onEntryAdded,
   onEntryError,
 }) => {
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', e => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+      const height = e.endCoordinates.height
+      setKeyboardHeight(height + 6)
+    })
+
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
+      setKeyboardHeight(0)
+    })
+
+    return () => {
+      showSub.remove()
+      hideSub.remove()
+    }
+  }, [])
+
   const handleSave = () => {
     console.log('Save functionality - to be implemented')
   }
@@ -43,21 +63,22 @@ const InputBox: React.FC<InputBoxProps> = ({
       date: selectedDate,
     }
 
-
     try {
-      await apiRequest(API_ENDPOINTS.ANALYZE_USER_TEXT,'POST', requestData)
-      resetForm();
-      onEntryAdded(selectedDate);
+      await apiRequest(API_ENDPOINTS.ANALYZE_USER_TEXT, 'POST', requestData)
+      resetForm()
+      onEntryAdded(selectedDate)
 
-    } catch (error: any) {      
+    } catch (error: any) {
       let errorMessage = 'Network error. Please check your connection.'
       if (error.name === 'AbortError') {
         errorMessage = 'Request timed out. Please try again.'
       } else if (error.message.includes('Network request failed')) {
         errorMessage = 'Cannot connect to server. Please check if the server is running.'
       }
-      
-      onEntryError(values.text, errorMessage, () => handleSubmit(values, resetForm))
+
+      onEntryError(values.text, errorMessage, () =>
+        handleSubmit(values, resetForm)
+      )
     }
   }
 
@@ -68,23 +89,27 @@ const InputBox: React.FC<InputBoxProps> = ({
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleChange, handleSubmit , isSubmitting}) => (
-        <View style={styles.container}>
+      {({ values, handleChange, handleSubmit, isSubmitting }) => (
+        <View
+          style={[
+            styles.container,
+            { paddingBottom: keyboardHeight > 0 ? keyboardHeight : 10 }
+          ]}
+        >
           <View style={styles.inputRow}>
             <View style={styles.inputContainer}>
               <TextInput
                 style={[
-                styles.textInput,
-                isSubmitting && styles.disabledInput,
+                  styles.textInput,
+                  isSubmitting && styles.disabledInput,
                 ]}
                 placeholder="What did you eat or exercise?"
                 value={values.text}
                 onChangeText={handleChange('text')}
                 placeholderTextColor="#8294a7ff"
                 editable={!isSubmitting}
-
               />
-              <Pressable 
+              <Pressable
                 style={[
                   styles.sendButton,
                   isSubmitting && styles.disabledButton,
@@ -97,7 +122,7 @@ const InputBox: React.FC<InputBoxProps> = ({
             </View>
 
             <View style={styles.buttonGroup}>
-              <Pressable 
+              <Pressable
                 style={styles.secondaryButton}
                 onPress={handleSave}
                 disabled={isSubmitting}
@@ -105,7 +130,7 @@ const InputBox: React.FC<InputBoxProps> = ({
                 <Bookmark size={18} color="#444" />
               </Pressable>
 
-              <Pressable 
+              <Pressable
                 style={styles.secondaryButton}
                 onPress={handleImage}
               >
@@ -121,8 +146,8 @@ const InputBox: React.FC<InputBoxProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 8,
+    paddingTop: 8,
     marginHorizontal: 16,
     marginBottom: 2,
     borderRadius: 14,
@@ -130,7 +155,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   inputContainer: {
     flex: 1,
@@ -140,26 +165,26 @@ const styles = StyleSheet.create({
     borderColor: '#D1E7FF',
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
-    paddingLeft: 16,
+    paddingLeft: 10,
     paddingRight: 8,
-    height: 52,
+    height: 46,
   },
   textInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: '#2C3E50',
     fontWeight: '400',
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   sendButton: {
-    padding: 8,
+    padding: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
   secondaryButton: {
     padding: 4,
@@ -167,13 +192,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   disabledInput: {
-  opacity: 0.6,
+    opacity: 0.6,
   },
-
   disabledButton: {
     opacity: 0.5,
   },
-
 })
 
 export default InputBox
